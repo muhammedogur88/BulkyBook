@@ -1,9 +1,11 @@
 using BulkyBook.DataAccess.Data;
 using BulkyBook.DataAccess.Repository;
 using BulkyBook.DataAccess.Repository.IRepository;
+using BulkyBook.Utlility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,14 +28,12 @@ namespace BulkyBook
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDatabaseDeveloperPageExceptionFilter();
-
-            services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
+            services.AddIdentity<IdentityUser, IdentityRole>().AddDefaultTokenProviders()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
-            services.AddControllersWithViews();
-
-            //DI
+            services.AddSingleton<IEmailSender, EmailSender>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddControllersWithViews().AddRazorRuntimeCompilation();
+            services.AddRazorPages();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,7 +42,7 @@ namespace BulkyBook
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseMigrationsEndPoint();
+                app.UseDatabaseErrorPage();
             }
             else
             {
